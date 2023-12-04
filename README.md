@@ -35,7 +35,7 @@
         deployments: write
       steps:
           - uses: actions/checkout@v4
-          - uses: givemomentum/render-deploy@v1.5.0
+          - uses: givemomentum/render-deploy@v1.5.1
             with:
               service_id: ${{ secrets.RENDER_SERVICE_ID }} # required
               api_key: ${{ secrets.RENDER_API_KEY }} # required

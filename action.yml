@@ -27,6 +27,9 @@ inputs:
     required: false
     description: 'Deploys the current workflow git commit, if `false` deploys the latest default branch commit'
     default: 'false'
+  deployment_environment:
+    required: false
+    description: 'GitHub deployment environment name'
 runs:
   using: 'node20'
   main: 'dist/index.js'
