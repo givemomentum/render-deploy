@@ -53,6 +53,7 @@ class Action {
                 const apiKey = core.getInput('api_key', { required: true });
                 const clearCache = core.getBooleanInput('clear_cache');
                 const waitDeploy = core.getBooleanInput('wait_deploy');
+                const deployCurrentWorkflowCommit = core.getBooleanInput('deploy_current_workflow_commit');
                 const createGithubDeployment = core.getBooleanInput('github_deployment');
                 const githubToken = core.getInput('github_token');
                 const environment = core.getInput('deployment_environment');
@@ -60,7 +61,12 @@ class Action {
                 const ref = process.env.GITHUB_REF;
                 const renderService = new render_service_1.RenderService({ apiKey, serviceId });
                 const githubService = new github_service_1.GitHubService({ githubToken, owner, repo });
-                const deployId = yield renderService.triggerDeploy({ clearCache });
+                const deployId = yield renderService.triggerDeploy({
+                    clearCache,
+                    commitId: deployCurrentWorkflowCommit
+                        ? process.env.GITHUB_SHA
+                        : undefined
+                });
                 let serviceUrl = '';
                 let deploymentId = 0;
                 if (createGithubDeployment) {
@@ -296,7 +302,8 @@ class RenderService {
     triggerDeploy(options) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield this.client.post('/deploys', {
-                clearCache: options.clearCache ? 'clear' : 'do_not_clear'
+                clearCache: options.clearCache ? 'clear' : 'do_not_clear',
+                commitId: options.commitId
             });
             return response.data.id;
         });

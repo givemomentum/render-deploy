@@ -34,8 +34,8 @@
       permissions: # Required if github_deployment is set to true.
         deployments: write
       steps:
-          - uses: actions/checkout@v3
-          - uses: JorgeLNJunior/render-deploy@v1.4.2
+          - uses: actions/checkout@v4
+          - uses: givemomentum/render-deploy@v1.5.0
             with:
               service_id: ${{ secrets.RENDER_SERVICE_ID }} # required
               api_key: ${{ secrets.RENDER_API_KEY }} # required
@@ -44,6 +44,7 @@
               github_deployment: false # Create a GitHub deployment. Optional
               deployment_environment: 'production' # GitHub deployment enviroment name. Optional
               github_token: ${{ secrets.GITHUB_TOKEN }} # Remove if github_deployment is false. Optional
+              deploy_current_workflow_commit: true # Deploys the current workflow git commit, if `false` deploys the latest default branch commit. Optional
 ```
 
 ## Licence
