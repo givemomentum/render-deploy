@@ -49,6 +49,14 @@ export class RenderService {
     return response.data.url as string
   }
 
+  async setEnvVar(envVar: Record<string, string>): Promise<void> {
+    const envVars = Object.entries(envVar).map(([key, value]) => ({
+      key,
+      value
+    }))
+    await this.client.put('/env-vars', envVars)
+  }
+
   /**
    * Retrieves the custom domain associated with the service.
    *

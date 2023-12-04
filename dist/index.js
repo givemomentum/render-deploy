@@ -57,10 +57,16 @@ class Action {
                 const createGithubDeployment = core.getBooleanInput('github_deployment');
                 const githubToken = core.getInput('github_token');
                 const environment = core.getInput('deployment_environment');
+                const sentryReleaseEnv = core.getInput('sentry_release_env');
                 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
                 const ref = process.env.GITHUB_REF;
                 const renderService = new render_service_1.RenderService({ apiKey, serviceId });
                 const githubService = new github_service_1.GitHubService({ githubToken, owner, repo });
+                if (sentryReleaseEnv) {
+                    yield renderService.setEnvVar({
+                        SENTRY_RELEASE: core.getInput('sentry_release_env')
+                    });
+                }
                 const deployId = yield renderService.triggerDeploy({
                     clearCache,
                     commitId: deployCurrentWorkflowCommit
@@ -320,6 +326,15 @@ class RenderService {
                 return `https://${customDomain}`;
             const response = yield this.client.get('');
             return response.data.url;
+        });
+    }
+    setEnvVar(envVar) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const envVars = Object.entries(envVar).map(([key, value]) => ({
+                key,
+                value
+            }));
+            yield this.client.put('/env-vars', envVars);
         });
     }
     /**

@@ -21,7 +21,7 @@ inputs:
     description: 'Creates a github deployment'
     default: 'false'
   github_token:
-    required: true
+    required: false
     description: 'Github auth token'
   deploy_current_workflow_commit:
     required: false
@@ -30,6 +30,9 @@ inputs:
   deployment_environment:
     required: false
     description: 'GitHub deployment environment name'
+  sentry_release_env:
+    required: false
+    description: 'Will update the SENTRY_RELEASE on the Render service'
 runs:
   using: 'node20'
   main: 'dist/index.js'

@@ -23,12 +23,19 @@ export default class Action {
       const createGithubDeployment = core.getBooleanInput('github_deployment')
       const githubToken = core.getInput('github_token')
       const environment = core.getInput('deployment_environment')
+      const sentryReleaseEnv = core.getInput('sentry_release_env')
 
       const [owner, repo] = (process.env.GITHUB_REPOSITORY as string).split('/')
       const ref = process.env.GITHUB_REF as string
 
       const renderService = new RenderService({apiKey, serviceId})
       const githubService = new GitHubService({githubToken, owner, repo})
+
+      if (sentryReleaseEnv) {
+        await renderService.setEnvVar({
+          SENTRY_RELEASE: core.getInput('sentry_release_env')
+        })
+      }
 
       const deployId = await renderService.triggerDeploy({
         clearCache,
