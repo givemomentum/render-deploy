@@ -1,5 +1,7 @@
 import axios, {AxiosInstance} from 'axios'
 
+import {EnvVarResponse, mergeEnvVars} from './helpers/env.helper'
+
 export class RenderService {
   private client: AxiosInstance
 
@@ -50,11 +52,13 @@ export class RenderService {
   }
 
   async setEnvVar(envVar: Record<string, string>): Promise<void> {
-    const envVars = Object.entries(envVar).map(([key, value]) => ({
-      key,
-      value
-    }))
-    await this.client.put('/env-vars', envVars)
+    // Fetch and include all existing env vars, or they will be overwritten.
+    const response = await this.client.get('/env-vars', {
+      params: {limit: 100}
+    })
+    const existingEnvVars: EnvVarResponse[] = response.data
+    const mergedVars = mergeEnvVars(existingEnvVars, envVar)
+    await this.client.put('/env-vars', mergedVars)
   }
 
   /**

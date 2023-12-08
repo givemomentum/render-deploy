@@ -207,6 +207,31 @@ var DeploymentState;
 
 /***/ }),
 
+/***/ 1286:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.mergeEnvVars = void 0;
+function mergeEnvVars(existingVars, updatedVars) {
+    const existingVarsMap = new Map(existingVars.map((item) => [
+        item.envVar.key,
+        item.envVar.value
+    ]));
+    for (const [key, value] of Object.entries(updatedVars)) {
+        existingVarsMap.set(key, value);
+    }
+    return Array.from(existingVarsMap).map(([key, value]) => ({
+        key,
+        value
+    }));
+}
+exports.mergeEnvVars = mergeEnvVars;
+
+
+/***/ }),
+
 /***/ 7483:
 /***/ (function(__unused_webpack_module, exports) {
 
@@ -278,6 +303,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RenderErrorResponse = exports.RenderDeployStatus = exports.RenderService = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(8757));
+const env_helper_1 = __nccwpck_require__(1286);
 class RenderService {
     constructor(options) {
         this.client = axios_1.default.create({
@@ -330,11 +356,13 @@ class RenderService {
     }
     setEnvVar(envVar) {
         return __awaiter(this, void 0, void 0, function* () {
-            const envVars = Object.entries(envVar).map(([key, value]) => ({
-                key,
-                value
-            }));
-            yield this.client.put('/env-vars', envVars);
+            // Fetch and include all existing env vars, or they will be overwritten.
+            const response = yield this.client.get('/env-vars', {
+                params: { limit: 100 }
+            });
+            const existingEnvVars = response.data;
+            const mergedVars = (0, env_helper_1.mergeEnvVars)(existingEnvVars, envVar);
+            yield this.client.put('/env-vars', mergedVars);
         });
     }
     /**
