@@ -33,6 +33,9 @@ inputs:
   sentry_release_env:
     required: false
     description: 'Will update the SENTRY_RELEASE on the Render service'
+  image_url:
+    required: false
+    description: 'Docker image URL for image-backed services (e.g., ghcr.io/org/repo:tag)'
 runs:
   using: 'node20'
   main: 'dist/index.js'

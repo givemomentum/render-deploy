@@ -24,6 +24,7 @@ export default class Action {
       const githubToken = core.getInput('github_token')
       const environment = core.getInput('deployment_environment')
       const sentryReleaseEnv = core.getInput('sentry_release_env')
+      const imageUrl = core.getInput('image_url')
 
       const [owner, repo] = (process.env.GITHUB_REPOSITORY as string).split('/')
       const ref = process.env.GITHUB_REF as string
@@ -41,7 +42,8 @@ export default class Action {
         clearCache,
         commitId: deployCurrentWorkflowCommit
           ? process.env.GITHUB_SHA
-          : undefined
+          : undefined,
+        imageUrl: imageUrl || undefined
       })
       let serviceUrl = ''
       let deploymentId = 0

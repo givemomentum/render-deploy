@@ -32,10 +32,18 @@ export class RenderService {
    * @return {Promise<string>} - A string representing the ID of the deploy.
    */
   async triggerDeploy(options: DeployOptions): Promise<string> {
-    const response = await this.client.post('/deploys', {
-      clearCache: options.clearCache ? 'clear' : 'do_not_clear',
-      commitId: options.commitId
-    })
+    const body: Record<string, string | undefined> = {
+      clearCache: options.clearCache ? 'clear' : 'do_not_clear'
+    }
+
+    // For image-backed services, use imageUrl instead of commitId
+    if (options.imageUrl) {
+      body.imageUrl = options.imageUrl
+    } else {
+      body.commitId = options.commitId
+    }
+
+    const response = await this.client.post('/deploys', body)
     return response.data.id as string
   }
 
@@ -82,6 +90,11 @@ interface DeployOptions {
    * https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
    * */
   commitId?: string
+  /**
+   * Docker image URL for image-backed services.
+   * https://api-docs.render.com/reference/create-deploy
+   */
+  imageUrl?: string
 }
 
 interface RenderOptions {

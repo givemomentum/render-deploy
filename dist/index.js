@@ -58,6 +58,7 @@ class Action {
                 const githubToken = core.getInput('github_token');
                 const environment = core.getInput('deployment_environment');
                 const sentryReleaseEnv = core.getInput('sentry_release_env');
+                const imageUrl = core.getInput('image_url');
                 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
                 const ref = process.env.GITHUB_REF;
                 const renderService = new render_service_1.RenderService({ apiKey, serviceId });
@@ -71,7 +72,8 @@ class Action {
                     clearCache,
                     commitId: deployCurrentWorkflowCommit
                         ? process.env.GITHUB_SHA
-                        : undefined
+                        : undefined,
+                    imageUrl: imageUrl || undefined
                 });
                 let serviceUrl = '';
                 let deploymentId = 0;
@@ -333,10 +335,17 @@ class RenderService {
      */
     triggerDeploy(options) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield this.client.post('/deploys', {
-                clearCache: options.clearCache ? 'clear' : 'do_not_clear',
-                commitId: options.commitId
-            });
+            const body = {
+                clearCache: options.clearCache ? 'clear' : 'do_not_clear'
+            };
+            // For image-backed services, use imageUrl instead of commitId
+            if (options.imageUrl) {
+                body.imageUrl = options.imageUrl;
+            }
+            else {
+                body.commitId = options.commitId;
+            }
+            const response = yield this.client.post('/deploys', body);
             return response.data.id;
         });
     }
