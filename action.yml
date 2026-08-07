@@ -37,7 +37,7 @@ inputs:
     required: false
     description: 'Docker image URL for image-backed services (e.g., ghcr.io/org/repo:tag)'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 branding:
   icon: 'upload-cloud'
