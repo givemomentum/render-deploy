@@ -41,6 +41,7 @@ describe('Inputs', () => {
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_CLEAR_CACHE'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
     process.env['GITHUB_REPOSITORY'] = 'action/test'
 
     const spy = jest
@@ -65,6 +66,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const spy = jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -83,6 +85,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -104,6 +107,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const status = RenderDeployStatus.BUILD_IN_PROGRESS
 
@@ -132,6 +136,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -157,6 +162,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -182,6 +188,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -207,6 +214,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -235,6 +243,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -256,6 +265,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -277,6 +287,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -298,6 +309,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -319,6 +331,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -340,6 +353,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -363,6 +377,7 @@ describe('GitHub deployment', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -384,6 +399,7 @@ describe('GitHub deployment', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -409,6 +425,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'false'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.SUCCESS
@@ -440,6 +457,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.IN_PROGRESS
@@ -474,6 +492,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.SUCCESS
@@ -511,6 +530,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.FAILURE
