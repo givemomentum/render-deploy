@@ -1,8 +1,16 @@
 import * as core from '@actions/core'
-import {describe, expect, jest, test} from '@jest/globals'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test
+} from '@jest/globals'
 
 import Action from '../src/action'
 import {DeploymentState, GitHubService} from '../src/github.service'
+import * as waitHelper from '../src/helpers/wait.helper'
 import {
   RenderDeployStatus,
   RenderErrorResponse,
@@ -230,6 +238,50 @@ describe('Deploy', () => {
       expect(coreSpy).toHaveBeenCalledWith(
         `The deploy exited with status: ${RenderDeployStatus.UPLOAD_FAILED}.`
       )
+    })
+  })
+
+  describe('Deploy status polling', () => {
+    beforeEach(() => {
+      // A real poll sleeps 10 s, and jest allows 25 s per test.
+      jest.spyOn(waitHelper, 'wait').mockResolvedValue()
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    test.each([
+      RenderDeployStatus.CREATED,
+      RenderDeployStatus.QUEUED,
+      RenderDeployStatus.BUILD_IN_PROGRESS,
+      RenderDeployStatus.UPDATE_IN_PROGRESS,
+      RenderDeployStatus.PRE_DEPLOY_IN_PROGRESS
+    ])('should keep polling while the deploy status is "%s"', async status => {
+      process.env['GITHUB_REPOSITORY'] = 'action/test'
+      process.env['GITHUB_REF'] = 'main'
+      process.env['INPUT_SERVICE_ID'] = 'my service id'
+      process.env['INPUT_API_KEY'] = 'my api key'
+      process.env['INPUT_CLEAR_CACHE'] = 'false'
+      process.env['INPUT_WAIT_DEPLOY'] = 'true'
+      process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
+
+      jest
+        .spyOn(RenderService.prototype, 'triggerDeploy')
+        .mockResolvedValueOnce('id')
+      const spy = jest
+        .spyOn(RenderService.prototype, 'verifyDeployStatus')
+        .mockResolvedValueOnce(status)
+        .mockResolvedValueOnce(RenderDeployStatus.LIVE)
+      const coreSpy = jest.spyOn(core, 'setFailed')
+      const infoSpy = jest.spyOn(core, 'info')
+
+      await new Action().run()
+
+      expect(coreSpy).not.toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledTimes(2)
+      expect(infoSpy).toHaveBeenCalledWith('The service has been deployed.')
     })
   })
 })
