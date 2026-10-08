@@ -106,13 +106,16 @@ interface RenderOptions {
 
 export enum RenderDeployStatus {
   CREATED = 'created',
+  QUEUED = 'queued',
   BUILD_IN_PROGRESS = 'build_in_progress',
   UPDATE_IN_PROGRESS = 'update_in_progress',
+  PRE_DEPLOY_IN_PROGRESS = 'pre_deploy_in_progress',
   LIVE = 'live',
   DEACTIVATED = 'deactivated',
   BUILD_FAILED = 'build_failed',
   UPLOAD_FAILED = 'update_failed',
-  CANCELED = 'canceled'
+  CANCELED = 'canceled',
+  PRE_DEPLOY_FAILED = 'pre_deploy_failed'
 }
 
 export const RenderErrorResponse = {
