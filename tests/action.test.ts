@@ -310,6 +310,35 @@ describe('Deploy', () => {
       )
       expect(spy).toHaveBeenCalledTimes(1)
     })
+
+    test('should exit if the deploy status is unknown', async () => {
+      process.env['GITHUB_REPOSITORY'] = 'action/test'
+      process.env['GITHUB_REF'] = 'main'
+      process.env['INPUT_SERVICE_ID'] = 'my service id'
+      process.env['INPUT_API_KEY'] = 'my api key'
+      process.env['INPUT_CLEAR_CACHE'] = 'false'
+      process.env['INPUT_WAIT_DEPLOY'] = 'true'
+      process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
+
+      const status = 'some_future_status' as RenderDeployStatus
+
+      jest
+        .spyOn(RenderService.prototype, 'triggerDeploy')
+        .mockResolvedValueOnce('id')
+      const spy = jest
+        .spyOn(RenderService.prototype, 'verifyDeployStatus')
+        .mockResolvedValueOnce(status)
+        .mockResolvedValueOnce(RenderDeployStatus.LIVE)
+      const coreSpy = jest.spyOn(core, 'setFailed')
+
+      await new Action().run()
+
+      expect(coreSpy).toHaveBeenCalledWith(
+        `The deploy exited with status: ${status}.`
+      )
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
   })
 })
 
