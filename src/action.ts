@@ -65,11 +65,13 @@ export default class Action {
         core.info('Waiting for deploy successful status.')
 
         while (waitStatus) {
-          const failureStatuses = [
-            RenderDeployStatus.BUILD_FAILED,
-            RenderDeployStatus.CANCELED,
-            RenderDeployStatus.DEACTIVATED,
-            RenderDeployStatus.UPLOAD_FAILED
+          // Any status not listed here fails, including ones Render adds later.
+          const inProgressStatuses = [
+            RenderDeployStatus.CREATED,
+            RenderDeployStatus.QUEUED,
+            RenderDeployStatus.BUILD_IN_PROGRESS,
+            RenderDeployStatus.UPDATE_IN_PROGRESS,
+            RenderDeployStatus.PRE_DEPLOY_IN_PROGRESS
           ]
 
           await wait(Seconds.TEN)
@@ -87,7 +89,7 @@ export default class Action {
             return core.info(`The service has been deployed.`)
           }
 
-          if (failureStatuses.includes(status)) {
+          if (!inProgressStatuses.includes(status)) {
             if (createGithubDeployment) {
               await githubService.createDeploymentStatus(
                 deploymentId,

@@ -87,11 +87,13 @@ class Action {
                     let currentDeployStatus = render_service_1.RenderDeployStatus.CREATED;
                     core.info('Waiting for deploy successful status.');
                     while (waitStatus) {
-                        const failureStatuses = [
-                            render_service_1.RenderDeployStatus.BUILD_FAILED,
-                            render_service_1.RenderDeployStatus.CANCELED,
-                            render_service_1.RenderDeployStatus.DEACTIVATED,
-                            render_service_1.RenderDeployStatus.UPLOAD_FAILED
+                        // Any status not listed here fails, including ones Render adds later.
+                        const inProgressStatuses = [
+                            render_service_1.RenderDeployStatus.CREATED,
+                            render_service_1.RenderDeployStatus.QUEUED,
+                            render_service_1.RenderDeployStatus.BUILD_IN_PROGRESS,
+                            render_service_1.RenderDeployStatus.UPDATE_IN_PROGRESS,
+                            render_service_1.RenderDeployStatus.PRE_DEPLOY_IN_PROGRESS
                         ];
                         yield (0, wait_helper_1.wait)(wait_helper_1.Seconds.TEN);
                         const status = yield renderService.verifyDeployStatus(deployId);
@@ -102,7 +104,7 @@ class Action {
                             waitStatus = false;
                             return core.info(`The service has been deployed.`);
                         }
-                        if (failureStatuses.includes(status)) {
+                        if (!inProgressStatuses.includes(status)) {
                             if (createGithubDeployment) {
                                 yield githubService.createDeploymentStatus(deploymentId, github_service_1.DeploymentState.FAILURE);
                             }
@@ -393,13 +395,16 @@ exports.RenderService = RenderService;
 var RenderDeployStatus;
 (function (RenderDeployStatus) {
     RenderDeployStatus["CREATED"] = "created";
+    RenderDeployStatus["QUEUED"] = "queued";
     RenderDeployStatus["BUILD_IN_PROGRESS"] = "build_in_progress";
     RenderDeployStatus["UPDATE_IN_PROGRESS"] = "update_in_progress";
+    RenderDeployStatus["PRE_DEPLOY_IN_PROGRESS"] = "pre_deploy_in_progress";
     RenderDeployStatus["LIVE"] = "live";
     RenderDeployStatus["DEACTIVATED"] = "deactivated";
     RenderDeployStatus["BUILD_FAILED"] = "build_failed";
     RenderDeployStatus["UPLOAD_FAILED"] = "update_failed";
     RenderDeployStatus["CANCELED"] = "canceled";
+    RenderDeployStatus["PRE_DEPLOY_FAILED"] = "pre_deploy_failed";
 })(RenderDeployStatus || (exports.RenderDeployStatus = RenderDeployStatus = {}));
 exports.RenderErrorResponse = {
     400: 'The request could not be understood by the server.',

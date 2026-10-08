@@ -1,8 +1,16 @@
 import * as core from '@actions/core'
-import {describe, expect, jest, test} from '@jest/globals'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test
+} from '@jest/globals'
 
 import Action from '../src/action'
 import {DeploymentState, GitHubService} from '../src/github.service'
+import * as waitHelper from '../src/helpers/wait.helper'
 import {
   RenderDeployStatus,
   RenderErrorResponse,
@@ -41,6 +49,7 @@ describe('Inputs', () => {
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_CLEAR_CACHE'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
     process.env['GITHUB_REPOSITORY'] = 'action/test'
 
     const spy = jest
@@ -65,6 +74,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const spy = jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -83,6 +93,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -104,6 +115,7 @@ describe('Deploy', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'true'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const status = RenderDeployStatus.BUILD_IN_PROGRESS
 
@@ -132,6 +144,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -157,6 +170,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -182,6 +196,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -207,6 +222,7 @@ describe('Deploy', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       jest
         .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -224,6 +240,106 @@ describe('Deploy', () => {
       )
     })
   })
+
+  describe('Deploy status polling', () => {
+    beforeEach(() => {
+      // A real poll sleeps 10 s, and jest allows 25 s per test.
+      jest.spyOn(waitHelper, 'wait').mockResolvedValue()
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    test.each([
+      RenderDeployStatus.CREATED,
+      RenderDeployStatus.QUEUED,
+      RenderDeployStatus.BUILD_IN_PROGRESS,
+      RenderDeployStatus.UPDATE_IN_PROGRESS,
+      RenderDeployStatus.PRE_DEPLOY_IN_PROGRESS
+    ])('should keep polling while the deploy status is "%s"', async status => {
+      process.env['GITHUB_REPOSITORY'] = 'action/test'
+      process.env['GITHUB_REF'] = 'main'
+      process.env['INPUT_SERVICE_ID'] = 'my service id'
+      process.env['INPUT_API_KEY'] = 'my api key'
+      process.env['INPUT_CLEAR_CACHE'] = 'false'
+      process.env['INPUT_WAIT_DEPLOY'] = 'true'
+      process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
+
+      jest
+        .spyOn(RenderService.prototype, 'triggerDeploy')
+        .mockResolvedValueOnce('id')
+      const spy = jest
+        .spyOn(RenderService.prototype, 'verifyDeployStatus')
+        .mockResolvedValueOnce(status)
+        .mockResolvedValueOnce(RenderDeployStatus.LIVE)
+      const coreSpy = jest.spyOn(core, 'setFailed')
+      const infoSpy = jest.spyOn(core, 'info')
+
+      await new Action().run()
+
+      expect(coreSpy).not.toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledTimes(2)
+      expect(infoSpy).toHaveBeenCalledWith('The service has been deployed.')
+    })
+
+    test('should exit if the deploy status is "pre_deploy_failed"', async () => {
+      process.env['GITHUB_REPOSITORY'] = 'action/test'
+      process.env['GITHUB_REF'] = 'main'
+      process.env['INPUT_SERVICE_ID'] = 'my service id'
+      process.env['INPUT_API_KEY'] = 'my api key'
+      process.env['INPUT_CLEAR_CACHE'] = 'false'
+      process.env['INPUT_WAIT_DEPLOY'] = 'true'
+      process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
+
+      jest
+        .spyOn(RenderService.prototype, 'triggerDeploy')
+        .mockResolvedValueOnce('id')
+      const spy = jest
+        .spyOn(RenderService.prototype, 'verifyDeployStatus')
+        .mockResolvedValueOnce(RenderDeployStatus.PRE_DEPLOY_FAILED)
+        .mockResolvedValueOnce(RenderDeployStatus.LIVE)
+      const coreSpy = jest.spyOn(core, 'setFailed')
+
+      await new Action().run()
+
+      expect(coreSpy).toHaveBeenCalledWith(
+        `The deploy exited with status: ${RenderDeployStatus.PRE_DEPLOY_FAILED}.`
+      )
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
+
+    test('should exit if the deploy status is unknown', async () => {
+      process.env['GITHUB_REPOSITORY'] = 'action/test'
+      process.env['GITHUB_REF'] = 'main'
+      process.env['INPUT_SERVICE_ID'] = 'my service id'
+      process.env['INPUT_API_KEY'] = 'my api key'
+      process.env['INPUT_CLEAR_CACHE'] = 'false'
+      process.env['INPUT_WAIT_DEPLOY'] = 'true'
+      process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
+
+      const status = 'some_future_status' as RenderDeployStatus
+
+      jest
+        .spyOn(RenderService.prototype, 'triggerDeploy')
+        .mockResolvedValueOnce('id')
+      const spy = jest
+        .spyOn(RenderService.prototype, 'verifyDeployStatus')
+        .mockResolvedValueOnce(status)
+        .mockResolvedValueOnce(RenderDeployStatus.LIVE)
+      const coreSpy = jest.spyOn(core, 'setFailed')
+
+      await new Action().run()
+
+      expect(coreSpy).toHaveBeenCalledWith(
+        `The deploy exited with status: ${status}.`
+      )
+      expect(spy).toHaveBeenCalledTimes(1)
+    })
+  })
 })
 
 describe('Render error handling', () => {
@@ -235,6 +351,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -256,6 +373,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -277,6 +395,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -298,6 +417,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -319,6 +439,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -340,6 +461,7 @@ describe('Render error handling', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     const coreSpy = jest.spyOn(core, 'setFailed')
 
@@ -363,6 +485,7 @@ describe('GitHub deployment', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'false'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -384,6 +507,7 @@ describe('GitHub deployment', () => {
     process.env['INPUT_CLEAR_CACHE'] = 'false'
     process.env['INPUT_WAIT_DEPLOY'] = 'false'
     process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+    process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
     jest
       .spyOn(RenderService.prototype, 'triggerDeploy')
@@ -409,6 +533,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'false'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.SUCCESS
@@ -440,6 +565,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.IN_PROGRESS
@@ -474,6 +600,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.SUCCESS
@@ -511,6 +638,7 @@ describe('GitHub deployment', () => {
       process.env['INPUT_CLEAR_CACHE'] = 'false'
       process.env['INPUT_WAIT_DEPLOY'] = 'true'
       process.env['INPUT_GITHUB_DEPLOYMENT'] = 'true'
+      process.env['INPUT_DEPLOY_CURRENT_WORKFLOW_COMMIT'] = 'false'
 
       const deploymentID = 1
       const state = DeploymentState.FAILURE
